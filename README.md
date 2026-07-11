@@ -1,72 +1,97 @@
-# GeoProteoNet: Fetal Anemia Diagnostic Dashboard
+# GeoProteoNet — Fetal Anemia Diagnostic Platform
+
+A full-stack clinical decision-support system that analyzes Doppler ultrasound images to assess fetal anemia risk. Built as a two-stage deep learning pipeline — CNN-based segmentation followed by classical ML classification on extracted hemodynamic features — wrapped in a production-style web application with a FastAPI backend and a React clinical dashboard.
+
+> Final-year B.E. major project, MJCET (2026) — supervised by Ms. Nabeela Fatima.
+
+---
 
 ## Overview
-The Fetal Anemia Diagnostic Dashboard is a full-stack, clinical-grade medical application designed to analyze Doppler ultrasound images using a deep learning model (GeoProteoNet). It automatically extracts hemodynamic features (PSV, EDV, RI, PI, S/D Ratio) and provides a real-time assessment of fetal anemia risk.
 
-## Key Features
-- **AI-Powered Diagnostics:** Uses the GeoProteoNet architecture to segment and analyze ultrasound images.
-- **Dynamic Waveform Analysis:** Generates and plots the characteristic Doppler waveforms for key features matching Jupyter notebook benchmarks.
-- **Correlation Heatmaps:** Visualizes the correlation between extracted parameters using an industry-standard 6x6 correlation grid.
-- **High-Resolution PDF Reports:** Exports clinical-grade diagnostic reports using scaled `html2canvas` (4x scale) for crisp medical record keeping.
-- **Responsive UI:** Built with React and Tailwind CSS, featuring dark mode, animations, and a modern medical interface.
+Fetal anemia is typically screened using Doppler ultrasound measurements of the Middle Cerebral Artery (MCA), particularly Peak Systolic Velocity (PSV). Manual measurement is time-consuming and operator-dependent. GeoProteoNet automates this by:
+
+1. **Segmenting** the relevant vascular structures from Doppler ultrasound images using a CNN encoder-decoder
+2. **Extracting** hemodynamic features (PSV, EDV, RI, PI, S/D Ratio) from the segmented output
+3. **Classifying** anemia risk using a Random Forest model trained on those features
+4. **Presenting** results through a clinical dashboard with waveform plots, correlation heatmaps, and exportable PDF reports
+
+## Architecture
+
+![System Architecture](./architecture.png)
+
+The system is organized into four layers:
+
+| Layer | Description |
+|---|---|
+| **Frontend** (React + Vite) | Dashboard UI for upload/compare/history, Recharts-based data visualization, PDF report export via `html2canvas` + `jsPDF` |
+| **API/Backend** (FastAPI) | REST endpoints for image upload and analysis, Doppler image preprocessing pipeline |
+| **Deep Learning Engine** | CNN encoder-decoder for segmentation, feature extraction, Random Forest classification |
+| **Data Persistence** | Patient records and scan history storage, raw ultrasound + generated report storage |
+
+## Model Performance
+
+Reported on the held-out test split of the labeled ultrasound dataset:
+
+- **Segmentation (CNN encoder-decoder):** 93.99% Dice Coefficient
+- **Classification (Random Forest on hemodynamic features):** 92.90% F1-score
 
 ## Tech Stack
-- **Frontend:** React, Vite, Tailwind CSS, Recharts, Lucide React
-- **Backend:** Python, FastAPI, Uvicorn, TensorFlow, OpenCV
-- **Exporting:** jsPDF, html2canvas
 
----
+**Frontend:** React, Vite, Tailwind CSS, Recharts, Lucide React
+**Backend:** Python, FastAPI, Uvicorn
+**ML/CV:** TensorFlow/Keras, OpenCV, Scikit-learn
+**Infra/DevOps:** Docker, GitHub Actions (CI/CD), AWS (EC2, S3, IAM, VPC)
+**Reporting:** jsPDF, html2canvas
 
-## How to Run in VS Code
+## Project Structure
 
-To run this application locally, you will need to start both the **Backend** and the **Frontend** simultaneously. You can easily do this using the built-in terminals in VS Code.
-
-### Option 1: The Automated Way (Recommended)
-We have provided an automated script that launches both servers for you.
-1. Open your project folder (`Fetal Anemia Major Project`) in VS Code.
-2. Open a new Terminal (`Terminal > New Terminal` or `Ctrl + \``).
-3. Run the following command exactly as written:
-```powershell
-powershell -ExecutionPolicy Bypass -File .\start_app.ps1
 ```
-This will automatically open two new command windows and start both services.
+├── backend/          # FastAPI app, model inference, DB access
+├── frontend/          # React + Vite dashboard
+├── notebooks/         # Model development & training notebooks
+├── .github/workflows/ # CI/CD pipeline definitions
+└── docker/            # Containerization configs
+```
 
----
+## Running Locally
 
-### Option 2: The Manual Way (Two Terminals)
+You'll need the backend and frontend running simultaneously.
 
-If you prefer to run the commands manually or want to see the logs directly inside VS Code:
-
-**Step 1: Start the Backend (FastAPI AI Server)**
-1. Open a new Terminal in VS Code.
-2. Navigate into the backend folder:
-```powershell
+### Backend
+```bash
 cd backend
-```
-3. Run the Python server:
-```powershell
+pip install -r requirements.txt
 python main.py
 ```
-*The backend will start running on `http://localhost:8000`.*
+Runs on `http://localhost:8000`
 
-**Step 2: Start the Frontend (React UI Server)**
-1. Open a **second, separate Terminal** in VS Code (click the `+` button in the terminal panel to split or open a new one).
-2. Navigate into the frontend folder:
-```powershell
+### Frontend
+```bash
 cd frontend
+npm install
+npm run dev
 ```
-3. Start the Vite development server:
-```powershell
-npm.cmd run dev
-```
-*The frontend will start running on `http://localhost:5173`.*
+Runs on `http://localhost:5173`
 
-### Step 3: Access the Application
-Once both terminals are running without errors, open your web browser (Chrome, Edge, etc.) and go to:
-👉 **http://localhost:5173**
+Then open `http://localhost:5173` in your browser.
 
----
+> **Note on local/demo mode:** If the full training dataset isn't present locally, the training scripts fall back to a lightweight dummy-data path so the pipeline (data loading → model → weights → backend integration) can still be verified end-to-end without the full dataset. This is intentional for local development and CI smoke-testing, not a substitute for the actual trained weights used to produce the metrics above.
 
-### Troubleshooting
-- **Unable to fetch / API Errors:** Ensure the python backend (`main.py`) is actively running. If the backend terminal was closed, the application will automatically fall back to generating dynamic offline simulation data to prevent crashes.
-- **Missing Dependencies:** If you get module errors, ensure you run `pip install -r requirements.txt` in the backend folder and `npm install` in the frontend folder.
+## CI/CD
+
+GitHub Actions runs on every push to validate the build and (where configured) run integration smoke tests against the FastAPI backend.
+
+## Team
+
+- **Shaikh Mazein Ahmed**
+- **Mohammad Owais**
+- **Shaik Syed**
+
+Supervised by Ms. Nabeela Fatima, Dept. of CSE, MJCET.
+
+<!-- TODO: add a one-line contribution note per person, e.g. "Mazein — backend, deployment, CI/CD" -->
+
+
+## License
+
+This project is licensed under the MIT License — see [LICENSE](./LICENSE) for details.
