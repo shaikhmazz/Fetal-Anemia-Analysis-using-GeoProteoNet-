@@ -3,6 +3,7 @@
 ### 1. Current Architecture (What's Deployed Now)
 
 https://github.com/shaikhmazz/Fetal-Anemia-Analysis-using-GeoProteoNet-/blob/master/DEVOPS-architecture.png.png
+
 GeoProteoNet's current deployment runs on a single AWS VPC, isolated from the rest of the AWS account:
 
 - **GitHub Actions CI/CD** builds, tests, and deploys the app on every push
